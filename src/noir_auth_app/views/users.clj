@@ -13,9 +13,7 @@
 
 
 (defn- email-activation-code [{:keys [email username activation_code]}]
-  (println "calling future")
-  (future (println "future invoked")
-          (try
+  (future (try
             (mailer/send-email 
              {:from config/emails-from
               :to email

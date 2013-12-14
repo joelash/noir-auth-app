@@ -3,7 +3,7 @@
   ; some Hiccup functionality needed here that is not available in Enlive.
   (:use [noir.request :only [*request*]]
         [hiccup.core]
-        [hiccup.page :only [include-js]]
+        [hiccup.page :only [include-js include-css]]
         [hiccup.element :only [javascript-tag]]
         [hiccup.util :only [escape-html url]])
   (:require [net.cgrand.enlive-html :as h]
@@ -40,6 +40,7 @@
     ; https://groups.google.com/d/topic/clojure/_WkdBGPhI-Q/discussion
     (javascript-tag "var CLOSURE_NO_DEPS = true;")
 
+    (include-css "//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css")
     ; Loads jQuery from Google's CDN ( http://jquery.com/download/ )
     ; This matches the version of jQuery in /externs/jquery.js
     (include-js "//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js")
@@ -236,8 +237,8 @@
                 "</a>"})
     ; login error
     :not-yet-activated
-        (let [{:keys [username-or-email]} interpolation-map
-              user (users/find-by-username-or-email username-or-email)
+        (let [{:keys [email]} interpolation-map
+              user (users/find-by-email email)
               link-start-tag
                 (str "<a data-method=\"post\" href=\""
                      (url "/resend-activation" {:email (:email user)})

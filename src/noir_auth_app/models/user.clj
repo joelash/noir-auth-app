@@ -46,7 +46,7 @@
 ; http://www.mongodb.org/display/DOCS/Object+IDs
 ; http://stackoverflow.com/questions/2298870/mongodb-get-names-of-all-keys-in-collection
 (def collection-fields 
-      [:username :lowercase_username :email :crypted_password 
+      [:email :crypted_password :roles
        :activation_code :activation_code_created_at
        :password_reset_code :password_reset_code_created_at
        :new_requested_email :email_change_code
@@ -67,7 +67,6 @@
 
   ; http://docs.mongodb.org/manual/core/indexes/#unique-index
   ; https://github.com/aboekhoff/congomongo/issues/82
-  (db/add-index! :users [:lowercase_username] :unique true)
   (db/add-index! :users [:email] :unique true)
   (db/add-index! :users [:created_at])
 
@@ -104,31 +103,6 @@
 (defn find-by-password-reset-code [password-reset-code]
   (db/fetch-one :users
                 :where {:password_reset_code password-reset-code}))
-
-(defn find-by-username-or-email [username-or-email]
-  ; MongoDB indexes (and string equality tests in general) are case sensitive.
-  ;   http://www.mongodb.org/display/DOCS/Indexes#Indexes-Behaviors
-  ; Regular expressions can be used for case-insensitive queries, but this
-  ; type of regular expressions cannot benefit from an index, so they are
-  ; slow. Actually, only simple, case-sensitive prefix queries (rooted
-  ; regexps) can benefit from an index.
-  ; http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-RegularExpressions
-  ;
-  ; http://stackoverflow.com/questions/5499451/case-insensitive-query-on-mongodb
-  ;
-  ; OTOH, MongoDB can only use one index per query, with the exception of $or
-  ; queries, which can run multiple query plans and then de-dup the results
-  ; http://www.mongodb.org/display/DOCS/Indexing+Advice+and+FAQ#IndexingAdviceandFAQ-Oneindexperquery.
-  ; Thanks to this it is NOT necessary to add a compound index on username
-  ; and email (on top of the individual indexes that are necessary anyway to
-  ; guarante uniqueness of username and email).
-  ;
-  ; http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24or
-  (let [lc-username-or-email 
-            (when username-or-email (string/lower-case username-or-email))]
-      (db/fetch-one :users
-                    :where {:$or [{:lowercase_username lc-username-or-email}
-                                  {:email lc-username-or-email}]})))
 
 ; This function may be useful for any collection, not only for :users, that's
 ; why there's a collection-name parameter. The function should be eventually
@@ -188,29 +162,9 @@
   ; http://clojuredocs.org/clojure_core/clojure.core/re-find
   ; http://clojure.github.com/clojure/clojure.core-api.html#clojure.core/re-matches
   ; http://clojuredocs.org/clojure_core/clojure.core/re-matches
-  (vali/rule (re-matches #"\A[\w\.\-]+\z" username)
-             [:username :invalid-username])
 
-  ; http://ux.stackexchange.com/questions/14633/what-should-be-maximum-and-minimum-length-of-persons-user-name-password
-  (vali/rule (vali/min-length? username 2) [:username :username-too-short])
-  (vali/rule (vali/max-length? username 30) [:username :username-too-long])
 
-  (when-not (vali/errors? :username)
-      ; Because the uniqueness check must be done for :lowercase_username but
-      ; the possible error must be set for :username, the validate-uniqueness
-      ; function defined before cannot be used here.
-      ;
-      ; if _id is not nil it means that the record to validate is an update
-      ; on a record already in the database.
-      ; The code below uses the fact that the result of merging a hash with
-      ; nil is the original hash.
-      ; http://stackoverflow.com/questions/8992997/initializing-elements-of-a-map-conditionally-in-clojure
-      (let [where (merge {:lowercase_username (string/lower-case username)}
-                         (when _id {:_id {:$ne _id}}))]
-          (vali/rule (not (db/fetch-one :users :where where))
-                     [:username :username-taken])))
-  
-  ; A nil email must be explicitly checked because noir.validation.is-email?
+    ; A nil email must be explicitly checked because noir.validation.is-email?
   ; produces a java.lang.NullPointerException if passed a nil
   ; http://webnoir.org/autodoc/1.2.1/noir.validation-api.html#noir.validation/is-email?
   ; http://webnoir.org/autodoc/1.2.1/noir.validation-api.html#noir.validation/set-error
@@ -260,9 +214,8 @@
       (vali/rule (vali/min-length? password 5)
              [:password :password-too-short]))
 
-  (not (vali/errors? :username :email :password :activation_code
+  (not (vali/errors? :email :password :activation_code
                      :password_reset_code)))
-
 
 ;; Mutations and Checks
 
@@ -295,7 +248,7 @@
   ;   before_save :encrypt_password
   ; https://github.com/technoweenie/restful-authentication/blob/master/lib/authentication/by_password.rb
   ;
-  [{:keys [username email password] :as user}]
+  [{:keys [email password] :as user}]
 
   ; in the database the passwords are prefixed with $2a$10.
   ; $2a indicates that the BLOWFISH algorithm was used.
@@ -304,8 +257,6 @@
   ; http://net.tutsplus.com/tutorials/php/understanding-hash-functions-and-keeping-passwords-safe/  
   (select-keys 
       (merge user
-             {:lowercase_username 
-                (when username (string/lower-case username))}
              {:email (when email (string/lower-case email))}
              (when-not (nil? password) 
                        {:crypted_password (crypt/encrypt password)}))
@@ -581,10 +532,10 @@
     - the user object if login was successful
     - nil otherwise (client code can use Noir's validation API for error
       details)"
-  [{:keys [username-or-email password]}]
+  [{:keys [email password]}]
   (let [{activation-code :activation_code
          stored-pass :crypted_password :as user}
-                        (find-by-username-or-email username-or-email)]
+                        (find-by-email email)]
     (if (nil? activation-code)
         (if (and stored-pass 
                  (crypt/compare password stored-pass))

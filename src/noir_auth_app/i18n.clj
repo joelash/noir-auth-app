@@ -200,9 +200,6 @@
    :username
       (renderer-fn
           "Username")
-   :username-or-email
-      (renderer-fn
-          "Username or email")
    :username-taken
       (renderer-fn
           "That username is already taken.")

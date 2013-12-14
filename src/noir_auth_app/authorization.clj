@@ -11,8 +11,3 @@
      ~func
      (when ~failure-func ~failure-func)))
 
-(defmacro authorized-for-old [func roles & [redirect-uri]]
-  `(if (authorized? (:roles (user))
-                    ~roles)
-     ~func
-     (resp/redirect (or ~redirect-uri "/"))))
