@@ -13,15 +13,19 @@
 
 
 (defn- email-activation-code [{:keys [email username activation_code]}]
-  (future (mailer/send-email 
-              {:from config/emails-from
-               :to email
-               :subject "Account activation"
-               :body (str "Hi " username ",\n\n"
-                          "To activate your " config/app-name 
-                          " account just follow the link below:\n\n"
-                          (str (common/base-url) "/activate/" activation_code)
-                          "\n\nCheers!")})))
+  (println "calling future")
+  (future (println "future invoked")
+          (try
+            (mailer/send-email 
+             {:from config/emails-from
+              :to email
+              :subject "Account activation"
+              :body (str "Hi " username ",\n\n"
+                         "To activate your " config/app-name 
+                         " account just follow the link below:\n\n"
+                         (str (common/base-url) "/activate/" activation_code)
+                         "\n\nCheers!")})
+            (catch Exception e (println "caught error" (.getMessage e))))))
 
 
 (h/defsnippet signup-content "public/signup.html" [:.content :> h/any-node]

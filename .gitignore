@@ -9,3 +9,5 @@ pom.xml
 .lein-deps-sum
 .lein-plugins
 .m2
+target/
+resources/public/js
