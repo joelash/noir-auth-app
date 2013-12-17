@@ -122,9 +122,14 @@
                [attr-name message])))
 
 
-(defn valid? [{:keys [_id username email password crypted_password
+(defn valid? [{:keys [_id username email password crypted_password confirm-password
                                         activation_code password_reset_code]
                :as user}]
+
+  (when (and (nil? _id)
+             (not= password confirm-password))
+    (do
+      (vali/set-error :confirm-password :password-mismatch)))
   
   ; Activation_code should be unique. This is enforced here and also at the
   ; database level (see the maybe-init function in this same namespace).
@@ -214,7 +219,7 @@
       (vali/rule (vali/min-length? password 5)
              [:password :password-too-short]))
 
-  (not (vali/errors? :email :password :activation_code
+  (not (vali/errors? :email :password :activation_code :confirm-password
                      :password_reset_code)))
 
 ;; Mutations and Checks

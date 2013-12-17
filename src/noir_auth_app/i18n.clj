@@ -151,7 +151,10 @@
           "Please check your inbox.")
    :password-changed
       (renderer-fn
-          "Your password has been changed.")
+       "Your password has been changed.")
+   :password-mismatch
+      (renderer-fn
+          "Your passwords do not match.")
    :password-reset-code-not-found
       (renderer-fn
           "Reset code not found. You can try asking for a new one below. "
