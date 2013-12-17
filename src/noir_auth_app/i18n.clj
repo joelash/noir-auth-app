@@ -56,6 +56,9 @@
    :change-username
       (renderer-fn
           "change username")
+   :confirm-password
+      (renderer-fn
+          "Confirm Password")
    :delete
       (renderer-fn
           "Delete")

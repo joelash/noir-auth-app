@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Signup — noir-auth-app</title>
+    <title>Signup</title>
     <meta content="initial-scale=1.0, width=device-width" name="viewport">
     <link href="css/reset.css" rel="stylesheet" type="text/css">
     <link href="css/default.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <div id="page">
+    <div id="page" class="container">
       <div class="content">
-        <form action="/signup" method="POST">
+        <form action="/signup" method="POST" role="form" class="form-signin">
+          <h2 class="form-signin-heading">Signup</h2>
           <p class="error-message">Sample error message.</p>
-          <p><input id="email" name="email" type="text"
-                placeholder="Email" data-i18n-placeholder="email" /></p>
-          <p><input id="password" name="password" type="password"
-                placeholder="Password" data-i18n-placeholder="password" /></p>
-          <input type="submit" value="Sign up" data-i18n-value="sign-up">
+          <input id="email" name="email" type="text"
+                 placeholder="Email" data-i18n-placeholder="email" class="form-control" required autofocus/>
+          <input id="password" name="password" type="password"
+                 placeholder="Password" data-i18n-placeholder="password" class="form-control"
+          required/>
+          <input id="confirm_password" name="confirm-password" type="password"
+                 placeholder="Confirm Password" data-i18n-placeholder="confirm-password" class="form-control"/>
+          <button type="submit" data-i18n-value="sign-up" class="btn btn-primary btn-block btn-lg">Sign up</button>
         </form>
       </div>
     </div>
