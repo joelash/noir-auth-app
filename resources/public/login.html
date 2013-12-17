@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Login — noir-auth-app</title>
+    <title>Login</title>
     <meta content="initial-scale=1.0, width=device-width" name="viewport">
     <link href="css/reset.css" rel="stylesheet" type="text/css">
     <link href="css/default.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <div id="page">
+    <div id="page" class="container">
       <div class="content">
-        <form action="/login" method="POST">
+        <form action="/login" method="POST" role="form" class="form-signin">
+          <h2 class="form-signin-heading">Login</h2>
           <p class="error-message">Sample error message.</p>
-          <p><input name="email" type="text"
-                placeholder="Email" data-i18n-placeholder="email"></p>
-          <p><input name="password" type="password"
-                placeholder="Password" data-i18n-placeholder="password"></p>
-          <p><a href="/password-resets" data-i18n="forgot-password">forgot password?</a></p>
-          <p><input type="submit" value="Log in" data-i18n-value="log-in"></p>
+          <input id="email" name="email" type="text"
+                 placeholder="Email" data-i18n-placeholder="email" class="form-control" required autofocus/>
+          <input id="password" name="password" type="password"
+                 placeholder="Password" data-i18n-placeholder="password" class="form-control"
+          required/>
+          <button type="submit" data-i18n-value="log-in" class="btn btn-primary btn-block btn-lg">Log in</button>
+          <hr />
+          <p><a href="/signup" data-i18n-value="sign-up-ended-with-ellipsis" class="btn btn-default btn-block btn-lg">Sign up...</a></p>
         </form>
-        <hr>
-        <p><a class="button signup" href="/signup" data-i18n="sign-up-ended-with-ellipsis">Sign up...</a></p>
       </div>
     </div>
   </body>
